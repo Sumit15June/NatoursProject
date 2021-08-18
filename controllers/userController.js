@@ -2,7 +2,10 @@ const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const factory = require('./handlerFactory');
+const APIFeatures = require('./../utils/apiFeatures');
 
+
+//filtered Objects
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
   Object.keys(obj).forEach(el => {
@@ -13,13 +16,15 @@ const filterObj = (obj, ...allowedFields) => {
 
 
 
-//to get my own details
+//To get my own details
 exports.getMe = (req, res, next) => {
   req.params.id = req.user.id;
   next();
 };
 
-exports.updateMe = catchAsync(async (req, res, next) => {
+
+//Updation
+exports.updateMe =(async (req, res, next) => {
   // 1) Create error if user POSTs password data
   if (req.body.password || req.body.passwordConfirm) {
     return next(
@@ -62,12 +67,16 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 
 
 //create a user/sign up
-exports.createUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not defined! Please use /signup instead'
+exports.createUser = (async (req, res, next) => {
+  const user = await User.create(req.body);
+
+  res.status(201).json({
+    status: 'success',
+    data: {
+      data: user
+    }
   });
-};
+});
 
 //Get a user
 //exports.getUser = factory.getOne(User);
@@ -83,7 +92,35 @@ const user = await User.findById(req.params.id);
 };
 
 
-exports.getAllUsers = factory.getAll(User);
+
+//Get All users
+//exports.getAllUsers = factory.getAll(User);
+exports.getAllUsers=(async (req, res, next) => {
+  console.warn("Hii");
+    // To allow for nested GET reviews on tour (hack)
+    let filter = {};
+    //if (req.params.tourId) filter = { tour: req.params.tourId };
+
+    const features = new APIFeatures(Model.find(filter), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    // const doc = await features.query.explain();
+    const users = await features.query;
+
+    // SEND RESPONSE
+    res.status(200).json({
+      status: 'success',
+      results: doc.length,
+      data: {
+        data: users
+      }
+    });
+  });
+
+
+
 
 
 //update a user
