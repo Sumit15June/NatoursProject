@@ -11,6 +11,9 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
+
+
+//to get my own details
 exports.getMe = (req, res, next) => {
   req.params.id = req.user.id;
   next();
@@ -46,6 +49,8 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
+
+//delete my details
 exports.deleteMe = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user.id, { active: false });
 
