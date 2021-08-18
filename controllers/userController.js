@@ -27,6 +27,8 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     );
   }
 
+
+
   // 2) Filtered out unwanted fields names that are not allowed to be updated
   const filteredBody = filterObj(req.body, 'name', 'email');
 
@@ -53,6 +55,8 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
+
+//create a user/sign up
 exports.createUser = (req, res) => {
   res.status(500).json({
     status: 'error',
@@ -60,9 +64,58 @@ exports.createUser = (req, res) => {
   });
 };
 
-exports.getUser = factory.getOne(User);
+//Get a user
+//exports.getUser = factory.getOne(User);
+exports.getUser = async (req, res, next) => {
+const user = await User.findById(req.params.id);
+  if (!user) {
+    return (new AppError('No user found with that id', 404));
+  }
+   res.status(200).json({
+    status: 'success',
+    data: user,
+  });
+};
+
+
 exports.getAllUsers = factory.getAll(User);
 
+
+//update a user
 // Do NOT update passwords with this!
-exports.updateUser = factory.updateOne(User);
-exports.deleteUser = factory.deleteOne(User);
+//exports.updateUser = factory.updateOne(User);
+exports.updateUser=async(req,res)=>{
+  const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true
+  })
+  if (!updatedUser) {
+    
+    return (new AppError('No user found with that id', 404));
+  }
+   res.status(200).json({
+    status: 'success',
+    data: updatedUser,
+  });
+}
+
+
+
+
+
+
+//delete a user
+//exports.deleteUser = factory.deleteOne(User);
+
+exports.deleteUser=async(req,res)=>{
+  const user = await Tour.findByIdAndDelete(req.params.id);
+  if (!user) {
+    
+    return (new AppError('No user found with that id', 404));
+  }
+   res.status(200).json({
+    status: 'success',
+    data: user,
+  });
+
+}

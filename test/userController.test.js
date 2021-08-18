@@ -1,467 +1,155 @@
-const express = require("express"); 
-// import express
+const request = require('supertest');
+const app = require("../app")
+
+const AppError = require('../utils/appError');
+const userController = require('../controllers/userController');
+const User = require("../models/userModel");
+
+const mockRequest = () => {
+    const req = {}
+    req.body = jest.fn().mockReturnValue(req)
+    req.params = jest.fn().mockReturnValue(req)
+    return req
+  }
+
+const mockResponse = () => {
+  const res = {}
+  res.status = jest.fn().mockReturnValue(res);
+  res.json = jest.fn().mockReturnValue(res);
+  return res
+}
 
 
-const userdata=require("../dev-data/data/users.json")
-//mock data
+//unit test for a user by id 
+describe('shows the details of user by user id', () => {
+  jest.setTimeout(1000);
 
+  it("should return data of user when id param is provided", async () => {
+    const req = mockRequest();
+    const res = mockResponse() 
+    req.params.id = "5c8a24822f8fb814b56fa192";
 
-const app=express();
-//created a fake implementation of express app
+    User.findById = jest.fn().mockResolvedValue(mockGetTourDetails) 
 
-//const router=express.Router();
-
-const userController = require("../controllers/userController");
- //import file we are testing 
-
-const request = require("supertest"); 
-//const User = require("../models/userModel");
-// supertest is a framework that allows to easily test web apis const app = express(); //an instance of an express app, a 'fake' express app
-app.use("/states", userController); 
-
-describe("testing user controller routes",()=>{
-
-    it("GET /states - success", async () => {
-     
-      });
-
-
-
-//testing post data
-jest.mock("./save_json", () => ({
-  userdata: jest.fn(),
-}));app.use(express.json()); 
-it("POST /states - success", async () => {
-    let stateObj = {
-        _id: "5c8a1dfa2f8fb814b56fa181",
-        name: "Lourdes Browning",
-        email: "loulou@example.com",
-        role: "user",
-        active: true,
-        photo: "user-2.jpg",
-        password: "$2a$12$hP1h2pnNp7wgyZNRwPsOTeZuNzWBv7vHmsR3DT/OaPSUBQT.y0S.."
-    };
-    const { body } = await request(app).post("/states").send(stateObj);
-    expect(body).toEqual({
-      status: "success",
-      stateInfo: {
-        _id: "5c8a1dfa2f8fb814b56fa181",
-        name: "Lourdes Browning",
-        email: "loulou@example.com",
-        role: "user",
-        active: true,
-        photo: "user-2.jpg",
-        password: "$2a$12$hP1h2pnNp7wgyZNRwPsOTeZuNzWBv7vHmsR3DT/OaPSUBQT.y0S.."
-      },
-    });
-    expect(body).toHaveBeenCalledWith(userdata);
-  });
-
-
-
-  //testing the updating userdata
-
-  it("PUT /states/id - success", async () => {
-    let stateObj = {
-        _id: "5c8a1dfa2f8fb814b56fa181",
-        name: "Lourdes Browning",
-        email: "loulou@example.com",
-        role: "user",
-        active: true,
-        photo: "user-2.jpg",
-        password: "$2a$12$hP1h2pnNp7wgyZNRwPsOTeZuNzWBv7vHmsR3DT/OaPSUBQT.y0S.."
-    };
-    const response = await request(app).put("/states/5c8a1dfa2f8fb814b56fa181").send(stateObj);
-    expect(response.body).toEqual({
-      status: "success",
-      stateInfo: {
-        _id: "5c8a1dfa2f8fb814b56fa181",
-        name: "Lourdes Browning",
-        email: "loulou@example.com",
-        role: "user",
-        active: true,
-        photo: "user-2.jpg",
-        password: "$2a$12$hP1h2pnNp7wgyZNRwPsOTeZuNzWBv7vHmsR3DT/OaPSUBQT.y0S.."
-      },
-    });
-    expect(userdata).toHaveBeenCalledWith(
-        [
-            {
-              "_id": "5c8a1d5b0190b214360dc057",
-              "name": "Jonas Schmedtmann",
-              "email": "admin@natours.io",
-              "role": "admin",
-              "active": true,
-              "photo": "user-1.jpg",
-              "password": "$2a$12$Q0grHjH9PXc6SxivC8m12.2mZJ9BbKcgFpwSG4Y1ZEII8HJVzWeyS"
-            },
-            {
-              "_id": "5c8a1dfa2f8fb814b56fa181",
-              "name": "Lourdes Browning",
-              "email": "loulou@example.com",
-              "role": "user",
-              "active": true,
-              "photo": "user-2.jpg",
-              "password": "$2a$12$hP1h2pnNp7wgyZNRwPsOTeZuNzWBv7vHmsR3DT/OaPSUBQT.y0S.."
-            },
-            {
-              "_id": "5c8a1e1a2f8fb814b56fa182",
-              "name": "Sophie Louise Hart",
-              "email": "sophie@example.com",
-              "role": "user",
-              "active": true,
-              "photo": "user-3.jpg",
-              "password": "$2a$12$9nFqToiTmjgfFVJiQvjmreLt4k8X4gGYCETGapSZOb2hHa55t0dDq"
-            },
-            {
-              "_id": "5c8a1ec62f8fb814b56fa183",
-              "name": "Ayla Cornell",
-              "email": "ayls@example.com",
-              "role": "user",
-              "active": true,
-              "photo": "user-4.jpg",
-              "password": "$2a$12$tm33.M/4pfEbZF64WbFuHuVFv85v4qEhi.ik8njbud7yaoqCZpjiy"
-            },
-            {
-              "_id": "5c8a1f292f8fb814b56fa184",
-              "name": "Leo Gillespie",
-              "email": "leo@example.com",
-              "role": "guide",
-              "active": true,
-              "photo": "user-5.jpg",
-              "password": "$2a$12$OOPr90tBEBF1Iho3ox0Jde0O/WXUR0VLA5xdh6tWcu7qb.qOCvSg2"
-            },
-            {
-              "_id": "5c8a1f4e2f8fb814b56fa185",
-              "name": "Jennifer Hardy",
-              "email": "jennifer@example.com",
-              "role": "guide",
-              "active": true,
-              "photo": "user-6.jpg",
-              "password": "$2a$12$XCXvvlhRBJ8CydKH09v1v.jpg0hB9gVVfMVEoz4MsxqL9zb5PrF42"
-            },
-            {
-              "_id": "5c8a201e2f8fb814b56fa186",
-              "name": "Kate Morrison",
-              "email": "kate@example.com",
-              "role": "guide",
-              "active": true,
-              "photo": "user-7.jpg",
-              "password": "$2a$12$II1F3aBSFDF3Xz7iB4rk/.a2dogwkClMN5gGCWrRlILrG1xtJG7q6"
-            },
-            {
-              "_id": "5c8a20d32f8fb814b56fa187",
-              "name": "Eliana Stout",
-              "email": "eliana@example.com",
-              "role": "user",
-              "active": true,
-              "photo": "user-8.jpg",
-              "password": "$2a$12$Jb/ILhdDV.ZpnPMu19xfe.NRh5ntE2LzNMNcsty05QWwRbmFFVMKO"
-            },
-            {
-              "_id": "5c8a211f2f8fb814b56fa188",
-              "name": "Cristian Vega",
-              "email": "chris@example.com",
-              "role": "user",
-              "active": true,
-              "photo": "user-9.jpg",
-              "password": "$2a$12$r7/jtdWtzNfrfC7zw3uS.eDJ3Bs.8qrO31ZdbMljL.lUY0TAsaAL6"
-            },
-            {
-              "_id": "5c8a21d02f8fb814b56fa189",
-              "name": "Steve T. Scaife",
-              "email": "steve@example.com",
-              "role": "lead-guide",
-              "active": true,
-              "photo": "user-10.jpg",
-              "password": "$2a$12$q7v9dm.S4DvqhAeBc4KwduedEDEkDe2GGFGzteW6xnHt120oRpkqm"
-            },
-            {
-              "_id": "5c8a21f22f8fb814b56fa18a",
-              "name": "Aarav Lynn",
-              "email": "aarav@example.com",
-              "role": "lead-guide",
-              "active": true,
-              "photo": "user-11.jpg",
-              "password": "$2a$12$lKWhzujFvQwG4m/X3mnTneOB3ib9IYETsOqQ8aN5QEWDjX6X2wJJm"
-            },
-            {
-              "_id": "5c8a22c62f8fb814b56fa18b",
-              "name": "Miyah Myles",
-              "email": "miyah@example.com",
-              "role": "lead-guide",
-              "active": true,
-              "photo": "user-12.jpg",
-              "password": "$2a$12$.XIvvmznHQSa9UOI639yhe4vzHKCYO1vpTUZc4d45oiT4GOZQe1kS"
-            },
-            {
-              "_id": "5c8a23412f8fb814b56fa18c",
-              "name": "Ben Hadley",
-              "email": "ben@example.com",
-              "role": "guide",
-              "active": true,
-              "photo": "user-13.jpg",
-              "password": "$2a$12$D3fyuS9ETdBBw5lOwceTMuZcDTyVq28ieeGUAanIuLMcSDz6bpfIe"
-            },
-            {
-              "_id": "5c8a23c82f8fb814b56fa18d",
-              "name": "Laura Wilson",
-              "email": "laura@example.com",
-              "role": "user",
-              "active": true,
-              "photo": "user-14.jpg",
-              "password": "$2a$12$VPYaAAOsI44uhq11WbZ5R.cHT4.fGdlI9gKJd95jmYw3.sAsmbvBq"
-            },
-            {
-              "_id": "5c8a23de2f8fb814b56fa18e",
-              "name": "Max Smith",
-              "email": "max@example.com",
-              "role": "user",
-              "active": true,
-              "photo": "user-15.jpg",
-              "password": "$2a$12$l5qamwqcqC2NlgN6o5A5..9Fxzr6X.bjx/8j3a9jYUHWGOL99oXlm"
-            },
-            {
-              "_id": "5c8a24282f8fb814b56fa18f",
-              "name": "Isabel Kirkland",
-              "email": "isabel@example.com",
-              "role": "user",
-              "active": true,
-              "photo": "user-16.jpg",
-              "password": "$2a$12$IUnwPH0MGFeMuz7g4gtfvOll.9wgLyxG.9C3TKlttfLtCQWEE6GIu"
-            },
-            {
-              "_id": "5c8a24402f8fb814b56fa190",
-              "name": "Alexander Jones",
-              "email": "alex@example.com",
-              "role": "user",
-              "active": true,
-              "photo": "user-17.jpg",
-              "password": "$2a$12$NnclhoYFNcSApoQ3ML8kk.b4B3gbpOmZJLfqska07miAnXukOgK6y"
-            },
-            {
-              "_id": "5c8a245f2f8fb814b56fa191",
-              "name": "Eduardo Hernandez",
-              "email": "edu@example.com",
-              "role": "user",
-              "active": true,
-              "photo": "user-18.jpg",
-              "password": "$2a$12$uB5H1OxLMOqDYTuTlptAoewlovENJvjrLwzsL1wUZ6OkAIByPPBGq"
-            },
-            {
-              "_id": "5c8a24822f8fb814b56fa192",
-              "name": "John Riley",
-              "email": "john@example.com",
-              "role": "user",
-              "active": true,
-              "photo": "user-19.jpg",
-              "password": "$2a$12$11JElTatQlAFo1Obw/dwd..vuVmQyYS7MT14pkl3lRvVPjGA00G8O"
-            },
-            {
-              "_id": "5c8a24a02f8fb814b56fa193",
-              "name": "Lisa Brown",
-              "email": "lisa@example.com",
-              "role": "user",
-              "active": true,
-              "photo": "user-20.jpg",
-              "password": "$2a$12$uA9FsDw63v6dkJKGlLQ/8ufYBs8euB7kqIQewyYlZXU5azEKeLEky"
-            }
-          ]
-    );
-    expect(response.statusCode).toEqual(200);
-  });
-
-
-  //testing the delete userdata
-
-  it("DELETE /states/id - success", async () => {
-    const { body } = await request(app).delete("/states/5c8a1d5b0190b214360dc057");
-    expect(body).toEqual({
-      status: "success",
-      removed: "5c8a1d5b0190b214360dc057",
-     
-    });
-    expect(userdata).toHaveBeenCalledWith([
-       
-        {
-          "_id": "5c8a1dfa2f8fb814b56fa181",
-          "name": "Lourdes Browning",
-          "email": "loulou@example.com",
-          "role": "user",
-          "active": true,
-          "photo": "user-2.jpg",
-          "password": "$2a$12$hP1h2pnNp7wgyZNRwPsOTeZuNzWBv7vHmsR3DT/OaPSUBQT.y0S.."
-        },
-        {
-          "_id": "5c8a1e1a2f8fb814b56fa182",
-          "name": "Sophie Louise Hart",
-          "email": "sophie@example.com",
-          "role": "user",
-          "active": true,
-          "photo": "user-3.jpg",
-          "password": "$2a$12$9nFqToiTmjgfFVJiQvjmreLt4k8X4gGYCETGapSZOb2hHa55t0dDq"
-        },
-        {
-          "_id": "5c8a1ec62f8fb814b56fa183",
-          "name": "Ayla Cornell",
-          "email": "ayls@example.com",
-          "role": "user",
-          "active": true,
-          "photo": "user-4.jpg",
-          "password": "$2a$12$tm33.M/4pfEbZF64WbFuHuVFv85v4qEhi.ik8njbud7yaoqCZpjiy"
-        },
-        {
-          "_id": "5c8a1f292f8fb814b56fa184",
-          "name": "Leo Gillespie",
-          "email": "leo@example.com",
-          "role": "guide",
-          "active": true,
-          "photo": "user-5.jpg",
-          "password": "$2a$12$OOPr90tBEBF1Iho3ox0Jde0O/WXUR0VLA5xdh6tWcu7qb.qOCvSg2"
-        },
-        {
-          "_id": "5c8a1f4e2f8fb814b56fa185",
-          "name": "Jennifer Hardy",
-          "email": "jennifer@example.com",
-          "role": "guide",
-          "active": true,
-          "photo": "user-6.jpg",
-          "password": "$2a$12$XCXvvlhRBJ8CydKH09v1v.jpg0hB9gVVfMVEoz4MsxqL9zb5PrF42"
-        },
-        {
-          "_id": "5c8a201e2f8fb814b56fa186",
-          "name": "Kate Morrison",
-          "email": "kate@example.com",
-          "role": "guide",
-          "active": true,
-          "photo": "user-7.jpg",
-          "password": "$2a$12$II1F3aBSFDF3Xz7iB4rk/.a2dogwkClMN5gGCWrRlILrG1xtJG7q6"
-        },
-        {
-          "_id": "5c8a20d32f8fb814b56fa187",
-          "name": "Eliana Stout",
-          "email": "eliana@example.com",
-          "role": "user",
-          "active": true,
-          "photo": "user-8.jpg",
-          "password": "$2a$12$Jb/ILhdDV.ZpnPMu19xfe.NRh5ntE2LzNMNcsty05QWwRbmFFVMKO"
-        },
-        {
-          "_id": "5c8a211f2f8fb814b56fa188",
-          "name": "Cristian Vega",
-          "email": "chris@example.com",
-          "role": "user",
-          "active": true,
-          "photo": "user-9.jpg",
-          "password": "$2a$12$r7/jtdWtzNfrfC7zw3uS.eDJ3Bs.8qrO31ZdbMljL.lUY0TAsaAL6"
-        },
-        {
-          "_id": "5c8a21d02f8fb814b56fa189",
-          "name": "Steve T. Scaife",
-          "email": "steve@example.com",
-          "role": "lead-guide",
-          "active": true,
-          "photo": "user-10.jpg",
-          "password": "$2a$12$q7v9dm.S4DvqhAeBc4KwduedEDEkDe2GGFGzteW6xnHt120oRpkqm"
-        },
-        {
-          "_id": "5c8a21f22f8fb814b56fa18a",
-          "name": "Aarav Lynn",
-          "email": "aarav@example.com",
-          "role": "lead-guide",
-          "active": true,
-          "photo": "user-11.jpg",
-          "password": "$2a$12$lKWhzujFvQwG4m/X3mnTneOB3ib9IYETsOqQ8aN5QEWDjX6X2wJJm"
-        },
-        {
-          "_id": "5c8a22c62f8fb814b56fa18b",
-          "name": "Miyah Myles",
-          "email": "miyah@example.com",
-          "role": "lead-guide",
-          "active": true,
-          "photo": "user-12.jpg",
-          "password": "$2a$12$.XIvvmznHQSa9UOI639yhe4vzHKCYO1vpTUZc4d45oiT4GOZQe1kS"
-        },
-        {
-          "_id": "5c8a23412f8fb814b56fa18c",
-          "name": "Ben Hadley",
-          "email": "ben@example.com",
-          "role": "guide",
-          "active": true,
-          "photo": "user-13.jpg",
-          "password": "$2a$12$D3fyuS9ETdBBw5lOwceTMuZcDTyVq28ieeGUAanIuLMcSDz6bpfIe"
-        },
-        {
-          "_id": "5c8a23c82f8fb814b56fa18d",
-          "name": "Laura Wilson",
-          "email": "laura@example.com",
-          "role": "user",
-          "active": true,
-          "photo": "user-14.jpg",
-          "password": "$2a$12$VPYaAAOsI44uhq11WbZ5R.cHT4.fGdlI9gKJd95jmYw3.sAsmbvBq"
-        },
-        {
-          "_id": "5c8a23de2f8fb814b56fa18e",
-          "name": "Max Smith",
-          "email": "max@example.com",
-          "role": "user",
-          "active": true,
-          "photo": "user-15.jpg",
-          "password": "$2a$12$l5qamwqcqC2NlgN6o5A5..9Fxzr6X.bjx/8j3a9jYUHWGOL99oXlm"
-        },
-        {
-          "_id": "5c8a24282f8fb814b56fa18f",
-          "name": "Isabel Kirkland",
-          "email": "isabel@example.com",
-          "role": "user",
-          "active": true,
-          "photo": "user-16.jpg",
-          "password": "$2a$12$IUnwPH0MGFeMuz7g4gtfvOll.9wgLyxG.9C3TKlttfLtCQWEE6GIu"
-        },
-        {
-          "_id": "5c8a24402f8fb814b56fa190",
-          "name": "Alexander Jones",
-          "email": "alex@example.com",
-          "role": "user",
-          "active": true,
-          "photo": "user-17.jpg",
-          "password": "$2a$12$NnclhoYFNcSApoQ3ML8kk.b4B3gbpOmZJLfqska07miAnXukOgK6y"
-        },
-        {
-          "_id": "5c8a245f2f8fb814b56fa191",
-          "name": "Eduardo Hernandez",
-          "email": "edu@example.com",
-          "role": "user",
-          "active": true,
-          "photo": "user-18.jpg",
-          "password": "$2a$12$uB5H1OxLMOqDYTuTlptAoewlovENJvjrLwzsL1wUZ6OkAIByPPBGq"
-        },
-        {
-          "_id": "5c8a24822f8fb814b56fa192",
-          "name": "John Riley",
-          "email": "john@example.com",
-          "role": "user",
-          "active": true,
-          "photo": "user-19.jpg",
-          "password": "$2a$12$11JElTatQlAFo1Obw/dwd..vuVmQyYS7MT14pkl3lRvVPjGA00G8O"
-        },
-        {
-          "_id": "5c8a24a02f8fb814b56fa193",
-          "name": "Lisa Brown",
-          "email": "lisa@example.com",
-          "role": "user",
-          "active": true,
-          "photo": "user-20.jpg",
-          "password": "$2a$12$uA9FsDw63v6dkJKGlLQ/8ufYBs8euB7kqIQewyYlZXU5azEKeLEky"
-        }
-      ]
-      );
-  });
-
-
-
-       
+    let tour =  await tourController.getTour(req,res)
+  
     
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.data).toEqual(mockGetTourDetails);
+  });
+
+  it('should not return data of tour when id param is provided wrong', async () => {
+    const req = mockRequest();
+    const res = mockResponse()
+
+    req.params.id = "5c88fa8cf4afda39709c2956";
+
+    Tour.findById = jest.fn().mockResolvedValue(null) 
+    await tourController.getTour(req,res)
+    let error = new AppError('No tour found with that id', 404);
+
+    expect(error.statusCode).toBe(404);
+    expect(error.status).toBe('fail');
+  });
+
+});
+
+//unit test for getting all users
+describe('shows the list of tour', () => {
+    jest.setTimeout(1000);  
+    let mockedReq;
+  
+    beforeEach(() => {
+        mockedReq = {
+            query: {}
+        };
+    })
+  
+    it("return list of tours", async () => {
+      Tour.find = jest.fn().mockResolvedValue(mockGetAllTours); 
+      
+      const res = mockResponse() 
+      await tourController.getAllTours(mockedReq,res)
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+  });
+  
+  
+  //unit test for creating a user
+  describe('testing the create tour', () => {
+      jest.setTimeout(1000);  
+    
+      it("create tours", async () => {
+          const req = mockRequest();
+          const res = mockResponse() 
+          req.body = mockdata;
+      
+          Tour.create = jest.fn().mockResolvedValue(mockcreateTour);
+          let tour =  await tourController.createTour(req.body,res)  
+          //console.log(res)      
+          expect(res.status).toHaveBeenCalledWith(201);
+      });
+    });
+    
+    //Testing updation of a user
+    describe('testing the updation of tour by tour id', () => {
+    jest.setTimeout(1000);
+    
+      it("should update data of tour when id param is provided", async () => {
+        const req = mockRequest();
+        const res = mockResponse() 
+        req.params.id = "60eb976e805edd5a38267794";
+        req.body={
+          "guides":["60ba1ed0c8861663b04019c3","60b4ee81cd997c305c931454","60b4ee52cd997c305c931453"]
+        }
+    
+        Tour.findByIdUpdate = jest.fn().mockResolvedValue(mockGetTourDetails) 
+    
+        let tour =  await tourController.updateTour(req,res)
+      
+        
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.data).toEqual(mockGetTourDetails);
+  
+      });
+    
+    
+    
+    });
+  
+  //unit test for deleting a user 
+    describe('testing the deletion of tour by tour id', () => {
+      jest.setTimeout(100000000);
+    
+      it("should delete data of tour when id param is provided", async () => {
+        const req = mockRequest();
+        const res = mockResponse() 
+        req.params.id = "60eb976e805edd5a38267794";
+        
+    
+        Tour.findByIdAndDelete = jest.fn().mockResolvedValue(mockGetTourDetails) 
+    
+        let tour =  await tourController.deleteTour(req,res)
+      
+        
+        expect(res.status).toHaveBeenCalledWith(200);
+      });
+    
+      
+    
+    });
+  
 
 
-})
+
+
+
+
+
+
+
+
+
+
+
+

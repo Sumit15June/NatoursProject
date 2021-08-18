@@ -47,7 +47,10 @@ exports.createTour = async (req, res, next) => {
   };
 
 
+//updating a tour
 //exports.updateTour = factory.updateOne(Tour);
+
+
 exports.updateTour=async(req,res)=>{
   const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
