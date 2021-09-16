@@ -17,9 +17,16 @@ const filterObj = (obj, ...allowedFields) => {
 
 
 //To get my own details
-exports.getMe = (req, res, next) => {
-  req.params.id = req.user.id;
-  next();
+exports.getMe = async (req, res, next) => {
+  req.params.id="5c8a1d5b0190b214360dc057"
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return (new AppError('No user found with that id', 404));
+  }
+   res.status(200).json({
+    status: 'success',
+    data: user,
+  });
 };
 
 
@@ -41,7 +48,7 @@ exports.updateMe =(async (req, res, next) => {
   const filteredBody = filterObj(req.body, 'name', 'email');
 
   // 3) Update user document
-  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+  const updatedUser = await User.findByIdAndUpdate(req.params.id, filteredBody, {
     new: true,
     runValidators: true
   });
@@ -57,11 +64,12 @@ exports.updateMe =(async (req, res, next) => {
 
 //delete my details
 exports.deleteMe = (async (req, res, next) => {
-  await User.findByIdAndUpdate(req.user.id, { active: false });
+  req.params.id="611ccfb75f5a3e28708336a0"
+  const user=await User.findByIdAndDelete(req.params.id, { active: false });
 
   res.status(204).json({
     status: 'success',
-    data: null
+    data: user
   });
 });
 
@@ -81,11 +89,12 @@ exports.createUser = (async (req, res, next) => {
 //Get a user
 //exports.getUser = factory.getOne(User);
 exports.getUser = async (req, res, next) => {
-const user = await User.findById(req.params.id);
+  
+ const user = await User.findById(req.params.id);
   if (!user) {
     return (new AppError('No user found with that id', 404));
   }
-   res.status(200).json({
+   res.status(201).json({
     status: 'success',
     data: user,
   });
@@ -96,23 +105,14 @@ const user = await User.findById(req.params.id);
 //Get All users
 //exports.getAllUsers = factory.getAll(User);
 exports.getAllUsers=(async (req, res, next) => {
-  console.warn("Hii");
-    // To allow for nested GET reviews on tour (hack)
-    let filter = {};
-    //if (req.params.tourId) filter = { tour: req.params.tourId };
+ 
 
-    const features = new APIFeatures(Model.find(filter), req.query)
-      .filter()
-      .sort()
-      .limitFields()
-      .paginate();
-    // const doc = await features.query.explain();
-    const users = await features.query;
+    const users=await User.find();
 
     // SEND RESPONSE
     res.status(200).json({
       status: 'success',
-      results: doc.length,
+      //results: users.length,
       data: {
         data: users
       }
@@ -161,3 +161,5 @@ exports.deleteUser=async(req,res)=>{
   });
 
 }
+
+

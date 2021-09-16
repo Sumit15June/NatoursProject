@@ -21,7 +21,6 @@ exports.getAllReviews = async (req, res, next) => {
   const reviews = await Review.find(req.query);
   res.status(200).json({
     status: 'success',
-    results: reviews.length,
     data: {
       reviews,
     },
@@ -65,7 +64,7 @@ exports.createReview = async (req, res, next) => {
 exports.updateReview=async(req,res)=>{
   const review = await Review.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
-    runValidators: true
+    //runValidators: true
   })
   if (!review) {
     

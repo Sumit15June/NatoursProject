@@ -16,7 +16,6 @@ exports.getAllTours = async (req, res, next) => {
   const tours = await Tour.find(req.query);
   res.status(200).json({
     status: 'success',
-    results: tours.length,
     data: {
       tours,
     },
@@ -54,7 +53,8 @@ exports.createTour = async (req, res, next) => {
 exports.updateTour=async(req,res)=>{
   const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
-    runValidators: true
+    useFindAndModify: false
+    //runValidators: true
   })
   if (!tour) {
     

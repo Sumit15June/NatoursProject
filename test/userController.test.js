@@ -1,208 +1,525 @@
-const User = require('../models/userModel');
-const AppError = require('../utils/appError');
-const userController = require('../controllers/userController');
+const UserController = require("../controllers/userController");
+const AuthController=require("../controllers/authController")
+const UserModel = require("../models/userModel");
+const httpMocks = require("node-mocks-http");
 
-const mockRequest = () => {
-  const req = {}
-  req.body = jest.fn().mockReturnValue(req)
-  req.params = jest.fn().mockReturnValue(req)
-  return req;
+
+
+jest.mock("../models/userModel");
+
+
+let req, res, next;
+
+beforeEach(() => {
+    req = httpMocks.createRequest();
+    res = httpMocks.createResponse();
+    next = jest.fn();
+});
+
+
+
+
+MockUsersResponse = {
+    "status": "success",
+    "data": {
+        "data": [
+            {
+                "role": "guide",
+                "_id": "5c8a1f292f8fb814b56fa184",
+                "name": "Leo Gillespie",
+                "email": "leo@example.com",
+                "photo": "user-5.jpg"
+            },
+            {
+                "role": "user",
+                "_id": "5c8a1dfa2f8fb814b56fa181",
+                "name": "Lourdes Browning",
+                "email": "loulou@example.com",
+                "photo": "user-2.jpg"
+            },
+            {
+                "role": "guide",
+                "_id": "5c8a1f4e2f8fb814b56fa185",
+                "name": "Jennifer Hardy",
+                "email": "jennifer@example.com",
+                "photo": "user-6.jpg"
+            }
+
+
+        ]
+    }
 }
 
-const mockResponse = () => {
-  const res = {}
-  res.status = jest.fn().mockReturnValue(res);
-  res.json = jest.fn().mockReturnValue(res);
-  return res;
+//Test for getting all users
+
+
+describe("UserController.getAllUsers", () => {
+    it("should have a getAllUsers function", () => {
+        expect(typeof UserController.getAllUsers).toBe("function");
+    });
+    it("should call Usermodel.find({})", async () => {
+        await UserController.getAllUsers(req, res, next);
+        expect(UserModel.find).toHaveBeenCalledWith();
+    });
+    it("should return response with status 200 and all users", async () => {
+        UserModel.find.mockReturnValue(MockUsersResponse);
+        await UserController.getAllUsers(req, res, next);
+        expect(res.statusCode).toBe(200);
+        expect(res._isEndCalled()).toBeTruthy();
+
+
+        expect(res._getJSONData().data.data).toStrictEqual(MockUsersResponse);
+    });
+
+
+});
+
+
+//testing for get a user
+
+MockGetUserResponse = {
+    "status": "success",
+    "data": {
+        "doc": {
+            "role": "guide",
+            "_id": "5c8a1f292f8fb814b56fa184",
+            "name": "Leo Gillespie",
+            "email": "leo@example.com",
+            "photo": "user-5.jpg",
+            "__v": 0
+        }
+    }
 }
 
-const mockedUser = {
+
+
+
+describe("UserController.getUserById", () => {
+    beforeEach(() => {
+        req.params.id = "5c8a1f292f8fb814b56fa184"
+    });
+    it("should have a getUserById", () => {
+        expect(typeof UserController.getUser).toBe("function");
+    });
+    it("should call UserModel.findById with route parameters", async () => {
+
+        await UserController.getUser(req, res, next);
+
+        expect(UserModel.findById).toBeCalledWith(req.params.id);
+    });
+    it("should return json body and response code 200", async () => {
+        UserModel.findById.mockReturnValue(MockGetUserResponse);
+        await UserController.getUser(req, res, next);
+        expect(res.statusCode).toBe(201);
+
+        expect(res._getJSONData().data).toStrictEqual(MockGetUserResponse);
+
+        expect(res._isEndCalled()).toBeTruthy();
+    });
+
+});
+
+
+mockDeleteUserResponse = {
+    "status": "success",
+    "data": {
+        "doc": {
+            "role": "user",
+            "active": true,
+            "_id": "5c8a1dfa2f8fb814b56fa181",
+            "name": "Lourdes Browning",
+            "email": "loulou@example.com",
+            "photo": "user-2.jpg",
+            "password": "$2a$12$hP1h2pnNp7wgyZNRwPsOTeZuNzWBv7vHmsR3DT/OaPSUBQT.y0S..",
+            "__v": 0
+        }
+    }
+
+}
+
+//Test for Deletion
+describe("User  deletion", () => {
+    beforeEach(() => {
+        req.params.id = "5c8a1dfa2f8fb814b56fa181";
+    });
+
+    it("should have a delete User  function", () => {
+        expect(typeof UserController.deleteUser).toBe("function");
+    });
+    it("should call findByIdAndDelete", async () => {
+
+        await UserController.deleteUser(req, res, next);
+        expect(UserModel.findByIdAndDelete).toBeCalledWith(req.params.id);
+    });
+    it("should return 200 OK and delete the user model", async () => {
+        UserModel.findByIdAndDelete.mockReturnValue(mockDeleteUserResponse);
+        await UserController.deleteUser(req, res, next);
+        expect(res.statusCode).toBe(200);
+        expect(res._getJSONData().data).toStrictEqual(mockDeleteUserResponse);
+        
+
+        expect(res._isEndCalled()).toBeTruthy();
+    });
+
+
+
+});
+
+
+MockUpdatedUserResponse={
+    "status": "success",
+      "data": {
+          "data": {
+              "role": "user",
+              "_id": "5c8a20d32f8fb814b56fa187",
+              "name": "Aliana",
+              "email": "eliana@example.com",
+              "photo": "user-8.jpg",
+              "__v": 0
+          }
+      }
+  }
+  
+   describe("UserController.updateUser", () => {
+    beforeEach(() => {
+        req.params.id = "5c8a20d32f8fb814b56fa187";
+        req.body={
+          "name":"Aliana"
+        }
+      });
+  
+  
+  it("should have a updateUser function", () => {
+    expect(typeof UserController.updateUser).toBe("function");
+  });
+  it("should update with UserModel.findByIdAndUpdate", async () => {
+  
+    await UserController.updateUser(req, res, next);
+  
+    expect(UserModel.findByIdAndUpdate).toHaveBeenCalledWith(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+      
+    });
+  });
+  it("should return a response with json data and http code 200", async () => {
+     
+  
+    UserModel.findByIdAndUpdate.mockReturnValue(MockUpdatedUserResponse);
+    await UserController.updateUser(req, res, next);
+    expect(res._isEndCalled()).toBeTruthy();
+    expect(res.statusCode).toBe(200);
+    expect(res._getJSONData().data).toStrictEqual(MockUpdatedUserResponse);
+  });
+  
+  });
+
+
+  //test for get me profile
+
+  MockGetMeResponse={
+    "status": "success",
+    "data": {
+        "doc": {
+            "role": "user",
+            "_id": "611ccfb75f5a3e28708336a0",
+            "name": "Sumit",
+            "email": "sumitsaurabh15@gmail.com",
+            "photo": "user-1.jpg",
+            "__v": 0
+        }
+    }
+}
+
+describe("UserController.getMe", () => {
+    beforeEach(() => {
+        req.params.id = "611ccfb75f5a3e28708336a0";
+       
+      });
+  
+  
+  it("should have a getMe function", () => {
+    expect(typeof UserController.getMe).toBe("function");
+  });
+  it("should update with UserModel.findByIdAndUpdate", async () => {
+  
+    await UserController.getMe(req, res, next);
+  
+    expect(UserModel.findById).toHaveBeenCalledWith(req.params.id);
+  });
+  it("should return a response with json data and http code 200", async () => {
+     
+  
+    UserModel.findById.mockReturnValue(MockGetMeResponse);
+    await UserController.getMe(req, res, next);
+    expect(res._isEndCalled()).toBeTruthy();
+    expect(res.statusCode).toBe(200);
+    expect(res._getJSONData().data).toStrictEqual(MockGetMeResponse);
+  });
+  
+  });
+  
+
+  //test for delete me 
+
+  mockDeletedUser={
+    "status": "success",
+    "data": {
+        "doc": {
+            "role": "user",
+            "_id": "611ccfb75f5a3e28708336a0",
+            "name": "Sumit",
+            "email": "sumitsaurabh15@gmail.com",
+            "__v": 0,
+            "active": true,
+           "password": "$2a$12$hP1h2pnNp7wgyZNRwPsOTeZuNzWBv7vHmsR3DT/OaPSUBQT.y0S..",
+           "photo": "user-2.jpg",
+         
+        }
+    }
+}
+
+
+describe("User  delete me ", () => {
+    beforeEach(() => {
+        req.params.id = "5c8a1dfa2f8fb814b56fa181";
+    });
+
+    it("should have a delete Me  function", () => {
+        expect(typeof UserController.deleteMe).toBe("function");
+    });
+    it("should call findByIdAndDelete", async () => {
+
+        await UserController.deleteMe(req, res, next);
+        expect(UserModel.findByIdAndDelete).toBeCalledWith(req.params.id,{ active: false });
+    });
+    it("should return 200 OK and delete the user profile", async () => {
+        UserModel.findByIdAndDelete.mockReturnValue(mockDeleteUserResponse);
+        await UserController.deleteMe(req, res, next);
+        expect(res.statusCode).toBe(204);
+        expect(res._getJSONData().data).toStrictEqual(mockDeleteUserResponse);
+        
+
+        expect(res._isEndCalled()).toBeTruthy();
+    });
+
+
+
+});
+
+
+describe("UserController.updateMe", () => {
+    beforeEach(() => {
+        req.params.id = "5c8a20d32f8fb814b56fa187";
+        req.body={
+          "name":"Aliana"
+        }
+      });
+  
+  
+  it("should have a updateMe function", () => {
+    expect(typeof UserController.updateMe).toBe("function");
+  });
+  it("should update with UserModel.findByIdAndUpdate", async () => {
+  
+    await UserController.updateMe(req, res, next);
+  
+    expect(UserModel.findByIdAndUpdate).toHaveBeenCalledWith(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+      
+    });
+  });
+  it("should return a response with json data and http code 200", async () => {
+     
+  
+    UserModel.findByIdAndUpdate.mockReturnValue(MockUpdatedUserResponse);
+    await UserController.updateMe(req, res, next);
+    expect(res._isEndCalled()).toBeTruthy();
+    expect(res.statusCode).toBe(200);
+    expect(res._getJSONData().data.user).toStrictEqual(MockUpdatedUserResponse);
+    console.log(res._getJSONData());
+  });
+  
+  });
+
+
+
+  //Auth
+
+  
+
+
+
+
+CreatedMockUser = {
+  "name": "sumit",
+  "email": "sumitsaurabh156@gmail.com",
+  "password": "test12345",
+  "passwordConfirm": "test12345"
+}
+
+CreatedMockResponse = {
   "status": "success",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxM2YxZWUwNjM1YTU4MzdjODEwYTU5NSIsImlhdCI6MTYzMTUyNjYyNSwiZXhwIjoxNjMxNTI5NjI1fQ.-sijwOt8yDhBReUdZmEbqIv8K_wzpMnA-HXKjeFT2Dg",
   "data": {
-    "doc": {
+    "role": "user",
+    "name": "sumit",
+    "email": "sumitsaurabh156@gmail.com",
+    "active": true,
+    "_id": "613f1ee0635a5837c810a595"
+  }
+}
+
+
+
+//Testing for creation of user Sign Up
+
+
+describe("AuthController.createSignUp", () => {
+
+  beforeEach(() => {
+    req.body = CreatedMockUser;
+
+  });
+
+  it("should have a createReview function", async () => {
+    expect(typeof AuthController.signup).toBe("function");
+  });
+  it('the signUp function should return something', () => {
+    expect(AuthController.signup).toBeDefined();
+  });
+  it("should call Usermodel create", () => {
+    AuthController.signup(req, res, next);
+    expect(UserModel.create).toBeCalledWith(req.body);
+  });
+  it("should return 201 response code", async () => {
+    UserModel.create.mockReturnValue(CreatedMockResponse);
+    await AuthController.signup(req, res, next);
+
+    expect(res.statusCode).toBe(201);
+    expect(res._isEndCalled()).toBeTruthy();
+  });
+  it("should return json body in response", async () => {
+    UserModel.create.mockReturnValue(CreatedMockResponse);
+    await AuthController.signup(req, res, next);
+    expect(res._isJSON()).toBe(true);
+
+
+  });
+
+});
+
+
+//Test for Sign In
+
+
+CreatedMockLoginUser = {
+  "email": "sumitsaurabh156@gmail.com",
+  "password": "test12345"
+}
+
+CreatedMockLoginResponse = {
+  "status": "success",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxM2YxZWUwNjM1YTU4MzdjODEwYTU5NSIsImlhdCI6MTYzMTUyODM2MiwiZXhwIjoxNjMxNTMxMzYyfQ.wB2QlR-5kTYbZub_DBniBqgEiV-li9RPQ0tTHwzE6rY",
+  "data": {
+    "user": {
       "role": "user",
-      "_id": "5c8a1dfa2f8fb814b56fa181",
-      "name": "Lourdes Browning",
-      "email": "loulou@example.com",
-      "photo": "user-2.jpg",
+      "_id": "613f1ee0635a5837c810a595",
+      "name": "sumit",
+      "email": "sumitsaurabh156@gmail.com",
       "__v": 0
     }
   }
 }
 
-describe('shows the details of user by user id', () => {
-  jest.setTimeout(1000);
 
-  it("should return data of user when id param is provided  ", async () => {
-    const req = mockRequest();
-    const res = mockResponse()
-    req.params.id = "5c8a1dfa2f8fb814b56fa181"
 
-    User.findById = jest.fn().mockResolvedValue(mockedUser)
 
-    await userController.getUser(req, res)
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith(mockedUser);
-  });
+//forget password
 
-  // it("should not return data of user when id param is provided wrong  ", async () => {
-  //   const req = mockRequest();
-  //   const res = mockResponse()
-  //   req.params.id = "5c8a1dfa2f8fb814b56fa181"
 
-  //   User.findById = jest.fn().mockResolvedValue(null)
-
-  //   await userController.getUser(req, res)
-  //   let error = new AppError('No tour found with that id', 404);
-
-  //   expect(error.statusCode).toBe(404);
-  //   expect(error.status).toBe('fail');
-  // });
-
-});
-
-const mockedAllUsers = {
+mockForgetPasswordResponse = {
   "status": "success",
-  "results": 2,
-  "data": {
-    "data": [
-      {
-        "role": "user",
-        "_id": "5c8a211f2f8fb814b56fa188",
-        "name": "Cristian Vega",
-        "email": "chris@example.com",
-        "photo": "user-9.jpg"
-      },
-      {
-        "role": "admin",
-        "_id": "5c8a1d5b0190b214360dc057",
-        "name": "Jonas Schmedtmann",
-        "email": "admin@natours.io@gmail.com",
-        "photo": "user-1.jpg"
-        
-      }
-    ]
-  }
+  "message": "Token sent to mail"
 }
 
-describe('shows the details of user', () => {
-  jest.setTimeout(1000);
-
-  it("should return list of user's details", async () => {
-    const req = mockRequest();
-    const res = mockResponse()
-
-
-    User.find = jest.fn().mockResolvedValue(mockedAllUsers)
-
-    await userController.getAllUsers(req, res)
-
-    expect(res.status).toHaveBeenCalledWith(200);
-  });
-})
-
-let mockedUpdateUser = {
-  "status": "success",
-  "data": {
-    "data": {
-      "role": "user",
-        "_id": "5c8a211f2f8fb814b56fa188",
-        "name": "Cristian Vega",
-        "email": "chris@example.com",
-        "photo": "user-9.jpg"
-    }
-  }
+mockUpdateForgetPassword =
+{
+  "email": "elina@example.com"
 }
 
 
-describe('shows the updated user ', () => {
-  jest.setTimeout(1000);
+describe("authController.forgetPassword", () => {
+  beforeEach(() => {
+    req.body = mockUpdateForgetPassword;
 
-  it("should return update details of user when id is provided", async () => {
-    const req = mockRequest();
-    const res = mockResponse()
-
-
-    User.findByIdAndUpdate = jest.fn().mockResolvedValue(mockedUpdateUser)
-
-    await userController.updateUser(req, res)
-
-    expect(res.status).toHaveBeenCalledWith(200);
   });
+
+
+  it("should have a forgetPassword function", async () => {
+    expect(typeof AuthController.forgotPassword).toBe("function");
+  });
+  it('the forgetpassword function should return something', () => {
+    expect(AuthController.forgotPassword).toBeDefined();
+  });
+
+  it("should call Usermodel forget", () => {
+    AuthController.forgotPassword(req, res, next);
+    expect(UserModel.findOne).toBeCalledWith(req.body);
+  });
+
+
 })
 
+//Reset Password
 
-const
-  mockDeleteUser = {
-    "status": "success",
-    "data": {
-      "doc": {
-        "role": "lead-guide",
-        "active": true,
-        "_id": "5c8a21d02f8fb814b56fa189",
-        "name": "Steve T. Scaife",
-        "email": "steve@example.com",
-        "photo": "user-10.jpg",
-        "password": "$2a$12$CokDfXtt8quyqSQJVAJmAuXRces3.IS4er1TyN6O6tyr0NKjZJ1h2",
-        "__v": 0
-      }
-    }
-  }
+createdMockResetPassword = {
+  "password": "pass1234",
+  "passwordConfirm": "pass1234"
+}
 
 
-
-describe('delete user ', () => {
-  jest.setTimeout(1000);
-
-  it("should delete user when id is provided", async () => {
-    const req = mockRequest();
-    const res = mockResponse()
-    req.params.id = "5c8a21d02f8fb814b56fa189"
-
-
-    User.findByIdAndDelete = jest.fn().mockResolvedValue(mockDeleteUser)
-
-    await userController.deleteUser(req, res)
-
-    expect(res.status).toHaveBeenCalledWith(200);
-  });
-})
-
-
-const mockUpdateMe = {
+createdMockResetResponse = {
   "status": "success",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjOGEyMGQzMmY4ZmI4MTRiNTZmYTE4NyIsImlhdCI6MTYyNjE1NDMzMSwiZXhwIjoxNjMzOTMwMzMxfQ.jTeL6isZr4wuSP_AHFBNpQMjpHgBhsToJsWsZYOQit8",
   "data": {
     "user": {
       "role": "user",
-      "_id": "611ccfb75f5a3e28708336a0",
-      "name": "Sumit",
-      "email": "sumitsaurabh15@gmail.com",
-      "photo": "user-1.jpg",
+      "_id": "5c8a20d32f8fb814b56fa187",
+      "name": "Elina",
+      "email": "elina@example.com",
+      "photo": "user-8.jpg",
       "__v": 0,
-      "passwordChangedAt": "2021-07-28T05:45:30.476Z"
+      "passwordChangedAt": "2021-07-13T05:32:10.317Z"
     }
   }
 }
 
+describe("AuthController.resetPassword", () => {
 
-describe('update user ', () => {
-  jest.setTimeout(1000);
+  beforeEach(() => {
+    req.body = createdMockResetPassword,
+    passwordResetToken="12345",
+    passwordResetExpires="17/2/21"
 
-  it("should return data of updated user", async () => {
-    const req = mockRequest();
-    const res = mockResponse()
-    req.params.body = {
-      "name": "Sumit",
-      "email": "sumitsaurabh15@gmail.com"
-    }
 
-    User.findByIdAndDelete = jest.fn().mockResolvedValue(mockUpdateMe)
-
-    await userController.updateMe(req, res)
-
-    expect(res.status).toHaveBeenCalledWith(200);
   });
-})
+
+  it("should have a reset password function", async () => {
+    expect(typeof AuthController.resetPassword).toBe("function");
+  });
+  it('the reset function should return something', () => {
+    expect(AuthController.resetPassword).toBeDefined();
+  });
+
+
+});
+
+
+
+
+
 
 
 
