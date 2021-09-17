@@ -73,8 +73,9 @@ const client_secret=process.env.github_client_secret
 console.log(client_id,client_secret)
 //Github Integration
 app.get("/login/github",(req,res)=>{
-
-  const url=`https://github.com/login/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}`
+  const redirect_uri="http://localhost:3000/login/github/callback";
+  const url=`https://github.com/login/oauth/authorize?client_id=${process.env.github_client_id}&redirect_uri=${redirect_uri}`
+  res.redirect(url);
 })
 app.get("/login/github/callback",(req,res)=>{ })
 
