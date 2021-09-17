@@ -12,6 +12,8 @@ const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 
+require('dotenv').config()
+
 const app = express();
 
 
@@ -65,6 +67,16 @@ app.use((req, res, next) => {
   // console.log(req.headers);
   next();
 });
+
+const client_id= process.env.github_client_id
+const client_secret=process.env.github_client_secret
+console.log(client_id,client_secret)
+//Github Integration
+app.get("/login/github",(req,res)=>{
+
+  const url=`https://github.com/login/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}`
+})
+app.get("/login/github/callback",(req,res)=>{ })
 
 // 3) ROUTES
 app.use('/api/v1/tours', tourRouter);
