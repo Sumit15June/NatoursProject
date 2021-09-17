@@ -70,12 +70,15 @@ app.use((req, res, next) => {
 
 const client_id= process.env.github_client_id
 const client_secret=process.env.github_client_secret
-console.log(client_id,client_secret)
+
 //Github Integration
 app.get("/login/github",(req,res)=>{
-  const redirect_uri="http://localhost:3000/login/github/callback";
-  const url=`https://github.com/login/oauth/authorize?client_id=${process.env.github_client_id}&redirect_uri=${redirect_uri}`
+  console.log("debugging 1")
+  const redirect_uri="http://localhost:9000/login/github/callback";
+  const url=`https://github.com/login/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}`
+  console.log("deigging 2")
   res.redirect(url);
+  console.log("debugging3")
 })
 app.get("/login/github/callback",(req,res)=>{ })
 
